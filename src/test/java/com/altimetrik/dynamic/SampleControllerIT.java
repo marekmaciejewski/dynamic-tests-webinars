@@ -56,4 +56,55 @@ class SampleControllerIT {
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            MISSING_BEARER_PREFIX_AUTH,
+            NON_BASE_64_AUTH,
+            TOO_SHORT_TOKEN_AUTH,
+            MISSING_PARTS_TOKEN_AUTH,
+            NOT_YET_VALID_TOKEN_AUTH,
+            EXPIRED_TOKEN_AUTH,
+            WRONG_SIGNATURE_TOKEN_AUTH
+    })
+    void getAccounts_respondsWithUnauthorized(String auth) throws Exception {
+        mockMvc.perform(get(ROOT_URL + "/accounts")
+                        .header(AUTH_KEY, auth))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            MISSING_BEARER_PREFIX_AUTH,
+            NON_BASE_64_AUTH,
+            TOO_SHORT_TOKEN_AUTH,
+            MISSING_PARTS_TOKEN_AUTH,
+            NOT_YET_VALID_TOKEN_AUTH,
+            EXPIRED_TOKEN_AUTH,
+            WRONG_SIGNATURE_TOKEN_AUTH
+    })
+    void getLoans_respondsWithUnauthorized(String auth) throws Exception {
+        mockMvc.perform(get(ROOT_URL + "/loans")
+                        .header(AUTH_KEY, auth))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            MISSING_BEARER_PREFIX_AUTH,
+            NON_BASE_64_AUTH,
+            TOO_SHORT_TOKEN_AUTH,
+            MISSING_PARTS_TOKEN_AUTH,
+            NOT_YET_VALID_TOKEN_AUTH,
+            EXPIRED_TOKEN_AUTH,
+            WRONG_SIGNATURE_TOKEN_AUTH
+    })
+    void getBeneficiaries_respondsWithUnauthorized(String auth) throws Exception {
+        mockMvc.perform(get(ROOT_URL + "/beneficiaries")
+                        .header(AUTH_KEY, auth))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
 }
