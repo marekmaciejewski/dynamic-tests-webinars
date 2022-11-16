@@ -1,6 +1,7 @@
 package com.altimetrik.dynamic;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,9 +24,10 @@ class SampleControllerIT {
     @Autowired
     private MockMvc mockMvc;
 
-    @Test
-    void getClients_respondsWithOk() throws Exception {
-        mockMvc.perform(get(ROOT_URL + "/clients")
+    @ParameterizedTest
+    @ValueSource(strings = {"/clients", "/accounts", "/loans", "/beneficiaries"})
+    void endpoints_respondWithOk(String resourceEndpoint) throws Exception {
+        mockMvc.perform(get(ROOT_URL + resourceEndpoint)
                         .header(AUTH_KEY, VALID_AUTH))
                 .andDo(print())
                 .andExpect(status().isOk());
