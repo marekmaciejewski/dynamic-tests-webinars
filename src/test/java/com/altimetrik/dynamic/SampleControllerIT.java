@@ -11,6 +11,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
@@ -27,13 +31,6 @@ class SampleControllerIT {
     private static final String ROOT_URL = "http://localhost:8080/alti-bank";
     private static final String AUTH_KEY = "Authorization";
     private static final String VALID_AUTH = "Bearer MjAyMC0wMS0wMSwyMDUwLTAxLTAxLDEyMw==";         // 2020-01-01,2050-01-01,123
-    private static final String MISSING_BEARER_PREFIX_AUTH = "missing 'Bearer' prefix";
-    private static final String NON_BASE_64_AUTH = "Bearer non-base64";
-    private static final String TOO_SHORT_TOKEN_AUTH = "Bearer MTIz";                                      // 123
-    private static final String MISSING_PARTS_TOKEN_AUTH = "Bearer MjAyMC0wMS0wMSAxMjowMDowMC4wLDEyMw==";  // 2020-01-01 12:00:00.0,123
-    private static final String NOT_YET_VALID_TOKEN_AUTH = "Bearer MjA0MC0wMS0wMSwyMDUwLTAxLTAxLDEyMw==";  // 2040-01-01,2050-01-01,123
-    private static final String EXPIRED_TOKEN_AUTH = "Bearer MjAyMC0wMS0wMSwyMDIxLTAxLTAxLDEyMw==";        // 2020-01-01,2021-01-01,123
-    private static final String WRONG_SIGNATURE_TOKEN_AUTH = "Bearer MjAyMC0wMS0wMSwyMDUwLTAxLTAxLDQ1Ng==";// 2020-01-01,2050-01-01,456
     @SpyBean
     private ValidationService validationService;
     @Autowired
@@ -65,8 +62,12 @@ class SampleControllerIT {
     }
 
     private Stream<String> steamInvalidAuth() {
-        return Stream.of(MISSING_BEARER_PREFIX_AUTH, NON_BASE_64_AUTH, TOO_SHORT_TOKEN_AUTH, MISSING_PARTS_TOKEN_AUTH,
-                NOT_YET_VALID_TOKEN_AUTH, EXPIRED_TOKEN_AUTH, WRONG_SIGNATURE_TOKEN_AUTH);
+        try {
+            return Files.lines(Path.of("src", "test", "resources", "invalid-authorizations.txt"))
+                    .onClose(() -> System.out.println("=====> stream closed"));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private static String generateDisplayName(String auth) {

@@ -1,0 +1,7 @@
+missing 'Bearer' prefix
+Bearer non-base64
+Bearer MTIz
+Bearer MjAyMC0wMS0wMSAxMjowMDowMC4wLDEyMw==
+Bearer MjA0MC0wMS0wMSwyMDUwLTAxLTAxLDEyMw==
+Bearer MjAyMC0wMS0wMSwyMDIxLTAxLTAxLDEyMw==
+Bearer MjAyMC0wMS0wMSwyMDUwLTAxLTAxLDQ1Ng==
