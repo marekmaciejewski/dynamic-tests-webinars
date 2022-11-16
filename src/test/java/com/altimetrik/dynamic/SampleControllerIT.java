@@ -1,5 +1,8 @@
 package com.altimetrik.dynamic;
 
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +11,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.junit.jupiter.api.DynamicTest.stream;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,69 +48,33 @@ class SampleControllerIT {
                 .andExpect(status().isOk());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            MISSING_BEARER_PREFIX_AUTH,
-            NON_BASE_64_AUTH,
-            TOO_SHORT_TOKEN_AUTH,
-            MISSING_PARTS_TOKEN_AUTH,
-            NOT_YET_VALID_TOKEN_AUTH,
-            EXPIRED_TOKEN_AUTH,
-            WRONG_SIGNATURE_TOKEN_AUTH
-    })
-    void getClients_respondsWithUnauthorized(String auth) throws Exception {
-        mockMvc.perform(get(ROOT_URL + "/clients")
-                        .header(AUTH_KEY, auth))
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
+    @TestFactory
+    Stream<DynamicNode> endpoints_respondWithUnauthorized() {
+        return Stream.of("/clients", "/accounts", "/loans", "/beneficiaries")
+                .map(endpoint -> dynamicContainer("Endpoint=" + endpoint, streamTestsCases(endpoint)));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            MISSING_BEARER_PREFIX_AUTH,
-            NON_BASE_64_AUTH,
-            TOO_SHORT_TOKEN_AUTH,
-            MISSING_PARTS_TOKEN_AUTH,
-            NOT_YET_VALID_TOKEN_AUTH,
-            EXPIRED_TOKEN_AUTH,
-            WRONG_SIGNATURE_TOKEN_AUTH
-    })
-    void getAccounts_respondsWithUnauthorized(String auth) throws Exception {
-        mockMvc.perform(get(ROOT_URL + "/accounts")
-                        .header(AUTH_KEY, auth))
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
+    private Stream<DynamicTest> streamTestsCases(String endpoint) {
+//        return steamInvalidAuth().map(auth -> dynamicTest(
+//                        generateDisplayName(auth),
+//                        () -> endpointRespondWithUnauthorized(endpoint, auth)));
+        return stream(
+                steamInvalidAuth(),
+                SampleControllerIT::generateDisplayName,
+                auth -> endpointRespondWithUnauthorized(endpoint, auth));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            MISSING_BEARER_PREFIX_AUTH,
-            NON_BASE_64_AUTH,
-            TOO_SHORT_TOKEN_AUTH,
-            MISSING_PARTS_TOKEN_AUTH,
-            NOT_YET_VALID_TOKEN_AUTH,
-            EXPIRED_TOKEN_AUTH,
-            WRONG_SIGNATURE_TOKEN_AUTH
-    })
-    void getLoans_respondsWithUnauthorized(String auth) throws Exception {
-        mockMvc.perform(get(ROOT_URL + "/loans")
-                        .header(AUTH_KEY, auth))
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
+    private Stream<String> steamInvalidAuth() {
+        return Stream.of(MISSING_BEARER_PREFIX_AUTH, NON_BASE_64_AUTH, TOO_SHORT_TOKEN_AUTH, MISSING_PARTS_TOKEN_AUTH,
+                NOT_YET_VALID_TOKEN_AUTH, EXPIRED_TOKEN_AUTH, WRONG_SIGNATURE_TOKEN_AUTH);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-            MISSING_BEARER_PREFIX_AUTH,
-            NON_BASE_64_AUTH,
-            TOO_SHORT_TOKEN_AUTH,
-            MISSING_PARTS_TOKEN_AUTH,
-            NOT_YET_VALID_TOKEN_AUTH,
-            EXPIRED_TOKEN_AUTH,
-            WRONG_SIGNATURE_TOKEN_AUTH
-    })
-    void getBeneficiaries_respondsWithUnauthorized(String auth) throws Exception {
-        mockMvc.perform(get(ROOT_URL + "/beneficiaries")
+    private static String generateDisplayName(String auth) {
+        return "Auth=[" + auth + ']';
+    }
+
+    private void endpointRespondWithUnauthorized(String endpoint, String auth) throws Exception {
+        mockMvc.perform(get(ROOT_URL + endpoint)
                         .header(AUTH_KEY, auth))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
