@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
@@ -53,19 +54,23 @@ class SampleControllerIT {
 
     private Stream<DynamicTest> streamTestsCases(String endpoint) {
         URI invalidAuthsUri = getInvalidAuthsUri();
-        return steamInvalidAuth().map(auth -> dynamicTest(
+        return steamInvalidAuth(invalidAuthsUri).map(auth -> dynamicTest(
                 generateDisplayName(auth),
                 invalidAuthsUri,
                 () -> endpointRespondWithUnauthorized(endpoint, auth)));
     }
 
     private URI getInvalidAuthsUri() {
-        return URI.create("file:/Users/Lenovo/dev/repo/dynamic-tests-sample/src/test/resources/invalid-authorizations.txt");
+        try {
+            return ClassLoader.getSystemResource("invalid-authorizations.txt").toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private Stream<String> steamInvalidAuth() {
+    private Stream<String> steamInvalidAuth(URI invalidAuthsUri) {
         try {
-            return Files.lines(Path.of("src", "test", "resources", "invalid-authorizations.txt"))
+            return Files.lines(Path.of(invalidAuthsUri))
                     .onClose(() -> System.out.println("=====> stream closed"));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
