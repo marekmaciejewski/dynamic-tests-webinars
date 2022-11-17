@@ -13,13 +13,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
-import static org.junit.jupiter.api.DynamicTest.stream;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -52,13 +52,15 @@ class SampleControllerIT {
     }
 
     private Stream<DynamicTest> streamTestsCases(String endpoint) {
-//        return steamInvalidAuth().map(auth -> dynamicTest(
-//                        generateDisplayName(auth),
-//                        () -> endpointRespondWithUnauthorized(endpoint, auth)));
-        return stream(
-                steamInvalidAuth(),
-                SampleControllerIT::generateDisplayName,
-                auth -> endpointRespondWithUnauthorized(endpoint, auth));
+        URI invalidAuthsUri = getInvalidAuthsUri();
+        return steamInvalidAuth().map(auth -> dynamicTest(
+                generateDisplayName(auth),
+                invalidAuthsUri,
+                () -> endpointRespondWithUnauthorized(endpoint, auth)));
+    }
+
+    private URI getInvalidAuthsUri() {
+        return URI.create("file:/Users/Lenovo/dev/repo/dynamic-tests-sample/src/test/resources/invalid-authorizations.txt");
     }
 
     private Stream<String> steamInvalidAuth() {
